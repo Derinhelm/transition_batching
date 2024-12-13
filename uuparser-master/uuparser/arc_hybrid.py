@@ -1,4 +1,5 @@
 from uuparser.utils import ParseForest, read_conll, write_conll
+from uuparser.metrics_getting import save_metric
 from operator import itemgetter
 from itertools import chain
 import time, random
@@ -426,6 +427,7 @@ class ArcHybridLSTM:
                     loss = bestWrong[3] - bestValid[3]
                     mloss += 1.0 + bestWrong[2] - bestValid[2]
                     eloss += 1.0 + bestWrong[2] - bestValid[2]
+                    save_metric("loss", 1.0 + bestWrong[2] - bestValid[2])
                     errs.append(loss)
 
                 #labeled errors

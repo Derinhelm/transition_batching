@@ -7,9 +7,10 @@ from loguru import logger
 from shutil import copyfile
 
 from uuparser import utils
+from uuparser.metrics_getting import save_metric
 
 
-def run(experiment,options):
+def run(experiment,options, exp_i):
     if options.graph_based:
         from uuparser.mstlstm import MSTParserLSTM as Parser
         logger.info('Working with a graph-based parser')
@@ -95,7 +96,11 @@ def run(experiment,options):
                         fh.write(f"Best dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
                     else:
                         fh.write(f"Best mean dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
-
+            save_metric.epoch += 1
+        metric_path = os.path.join(experiment.outdir, f'metric_dict_{exp_i}.pickle')
+        with open(metric_path, 'wb') as f:
+            pickle.dump(save_metric.metric_dict, f)
+        logger.info(f"Saving metrics to {metric_path}")
     else: #if predict - so
 
         params = os.path.join(experiment.modeldir,options.params)
@@ -136,7 +141,7 @@ def run(experiment,options):
                     logger.info(f"Obtained LAS F1 score of {score:.2f} on {treebank.name}")
 
             logger.debug('Finished predicting')
-
+    
 
 def setup_logging(options):
     logger.remove(0)  # Remove the default logger
@@ -321,8 +326,8 @@ each")
 
     om = OptionsManager(options)
     experiments = om.create_experiment_list(options) # list of namedtuples
-    for experiment in experiments:
-        run(experiment,options)
+    for exp_i, experiment in enumerate(experiments):
+        run(experiment, options, exp_i)
 
 if __name__ == '__main__':
     main()
